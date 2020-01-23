@@ -1,9 +1,8 @@
 package com.example.demo;
 
-import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -15,6 +14,7 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
@@ -26,31 +26,16 @@ import java.util.Properties;
         queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
 public class DemoDataSourceConfig {
 
-    @Bean(name = "demoDataSourceProperties")
+    @Bean
     @ConfigurationProperties(prefix = "demo.datasource")
-    public DataSourceProperties demoDataSourceProperties() {
-        return new DataSourceProperties();
-    }
-
-    @Bean(name = "demoDataSource")
-    @ConfigurationProperties(prefix = "demo.datasource.configuration")
-    public HikariDataSource demoDataSource() {
-        DataSourceProperties dataSourceProperties = demoDataSourceProperties();
-        HikariDataSource dataSource = dataSourceProperties.initializeDataSourceBuilder()
-                .driverClassName(dataSourceProperties.getDriverClassName())
-                .url(dataSourceProperties.getUrl())
-                .username(dataSourceProperties.getUsername())
-                .password(dataSourceProperties.getPassword())
-                .type(HikariDataSource.class)
-                .build();
-
-        return dataSource;
+    public DataSource demoDataSource() {
+        return DataSourceBuilder.create().build();
     }
 
     @Bean(name = "demoEntityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean demoEntityManagerFactory(HikariDataSource demoDataSource) {
+    public LocalContainerEntityManagerFactoryBean demoEntityManagerFactory() {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-        em.setDataSource(demoDataSource);
+        em.setDataSource(demoDataSource());
         em.setPersistenceUnitName("demo");
         em.setPackagesToScan("com.example.demo.entity");
 
